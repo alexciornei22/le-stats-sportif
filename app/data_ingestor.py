@@ -1,9 +1,26 @@
-import os
-import json
+import csv
+
+DATA_VALUE_KEY = 'Data_Value'
+QUESTION_KEY = 'Question'
+STATE_KEY = 'LocationDesc'
+STRATIFICATION_KEY = 'Stratification1'
+STRATIFICATION_CATEGORY_KEY = 'StratificationCategory1'
+
 
 class DataIngestor:
     def __init__(self, csv_path: str):
-        # TODO: Read csv from csv_path
+        self.data = []
+        with open(csv_path) as data_file:
+            csv_reader = csv.DictReader(data_file)
+            for row in csv_reader:
+                self.data.append(
+                    DataEntry(
+                        row[DATA_VALUE_KEY],
+                        row[QUESTION_KEY],
+                        row[STATE_KEY],
+                        row[STRATIFICATION_CATEGORY_KEY],
+                        row[STRATIFICATION_KEY])
+                )
 
         self.questions_best_is_min = [
             'Percent of adults aged 18 years and older who have an overweight classification',
@@ -19,3 +36,12 @@ class DataIngestor:
             'Percent of adults who achieve at least 300 minutes a week of moderate-intensity aerobic physical activity or 150 minutes a week of vigorous-intensity aerobic activity (or an equivalent combination)',
             'Percent of adults who engage in muscle-strengthening activities on 2 or more days a week',
         ]
+
+
+class DataEntry:
+    def __init__(self, data_value, question, state, strat_category, strat):
+        self.data_value = data_value
+        self.question = question
+        self.state = state
+        self.strat_category = strat_category
+        self.strat = strat
