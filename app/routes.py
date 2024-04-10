@@ -36,35 +36,29 @@ def state_mean_request():
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    data = request.get_json()
 
-    return jsonify({"status": "NotImplemented"})
+    job_id = submit_job_to_executor(queries.best5, data['question'])
+
+    return jsonify({"job_id": job_id})
 
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    data = request.get_json()
 
-    return jsonify({"status": "NotImplemented"})
+    job_id = submit_job_to_executor(queries.worst5, data['question'])
+
+    return jsonify({"job_id": job_id})
 
 
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    data = request.get_json()
 
-    return jsonify({"status": "NotImplemented"})
+    job_id = submit_job_to_executor(queries.global_mean, data['question'])
+
+    return jsonify({"job_id": job_id})
 
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])

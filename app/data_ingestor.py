@@ -43,6 +43,21 @@ class DataIngestor:
     def get_data_for_question_state(self, question, state):
         return list(filter(lambda item: item.question == question and item.state == state, self.data))
 
+    def get_averages_for_question(self, question):
+        data = self.get_data_for_question(question)
+        states = self.get_states()
+
+        values = {state: 0 for state in states}
+        nr_entries = values.copy()
+
+        for entry in data:
+            state = entry.state
+            values[state] += entry.data_value
+            nr_entries[state] += 1
+
+        means = {state: values[state] / nr_entries[state] for state in states if nr_entries[state] > 0}
+        return means
+
     def get_states(self):
         return set(map(lambda item: item.state, self.data))
 
