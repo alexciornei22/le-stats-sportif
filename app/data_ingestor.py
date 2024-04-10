@@ -40,6 +40,9 @@ class DataIngestor:
     def get_data_for_question(self, question):
         return list(filter(lambda item: item.question == question, self.data))
 
+    def get_data_for_question_state(self, question, state):
+        return list(filter(lambda item: item.question == question and item.state == state, self.data))
+
     def get_states(self):
         return set(map(lambda item: item.state, self.data))
 

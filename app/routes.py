@@ -27,13 +27,11 @@ def states_mean_request():
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    data = request.get_json()
 
-    return jsonify({"status": "NotImplemented"})
+    job_id = submit_job_to_executor(queries.state_mean, data['question'], data['state'])
+
+    return jsonify({"job_id": job_id})
 
 
 @webserver.route('/api/best5', methods=['POST'])
@@ -137,7 +135,7 @@ def get_defined_routes():
     return routes
 
 
-def submit_job_to_executor(job, args):
+def submit_job_to_executor(job, *args):
     future = webserver.tasks_runner.submit(job, args)
     job_id = webserver.job_counter
     webserver.futures[job_id] = future
