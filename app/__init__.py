@@ -1,14 +1,14 @@
 from flask import Flask
 from app.data_ingestor import DataIngestor
-from app.task_runner import ThreadPool
+from concurrent.futures import ThreadPoolExecutor
 
 webserver = Flask(__name__)
-webserver.tasks_runner = ThreadPool()
+webserver.tasks_runner = ThreadPoolExecutor()
 
-# webserver.task_runner.start()
-
-webserver.data_ingestor = DataIngestor("./nutrition_activity_obesity_usa_subset.csv")
+data_ingestor = DataIngestor("./nutrition_activity_obesity_usa_subset.csv")
 
 webserver.job_counter = 1
+
+webserver.futures = {}
 
 from app import routes

@@ -37,10 +37,16 @@ class DataIngestor:
             'Percent of adults who engage in muscle-strengthening activities on 2 or more days a week',
         ]
 
+    def get_data_for_question(self, question):
+        return list(filter(lambda item: item.question == question, self.data))
+
+    def get_states(self):
+        return set(map(lambda item: item.state, self.data))
+
 
 class DataEntry:
     def __init__(self, data_value, question, state, strat_category, strat):
-        self.data_value = data_value
+        self.data_value = float(data_value)
         self.question = question
         self.state = state
         self.strat_category = strat_category
