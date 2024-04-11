@@ -15,20 +15,20 @@ def job_wrapper(query, job_id, args):
     return result
 
 
-def states_mean(question):
+def get_states_mean(question):
     means = data_ingestor.states_averages_for_question(question)
 
     return dict(sorted(means.items(), key=lambda x: x[1]))
 
 
-def state_mean(question, state):
+def get_state_mean(question, state):
     data = data_ingestor.data_for_question_in_state(question, state)
 
     mean = reduce(lambda a, x: a + x.data_value, data, 0) / len(data)
     return {state: mean}
 
 
-def best5(question):
+def get_best5(question):
     means = data_ingestor.states_averages_for_question(question)
 
     reverse = question in data_ingestor.questions_best_is_max
@@ -36,7 +36,7 @@ def best5(question):
     return dict(means[0:5])
 
 
-def worst5(question):
+def get_worst5(question):
     means = data_ingestor.states_averages_for_question(question)
 
     reverse = question in data_ingestor.questions_best_is_min
@@ -44,7 +44,23 @@ def worst5(question):
     return dict(means[0:5])
 
 
-def global_mean(question):
+def get_global_mean(question):
     data = data_ingestor.data_for_question(question)
     mean = reduce(lambda a, x: a + x.data_value, data, 0) / len(data)
     return {'global_mean': mean}
+
+
+def get_diff_from_mean(question):
+    state_means = get_states_mean(question)
+    global_mean = get_global_mean(question)['global_mean']
+
+    state_means = {state: global_mean - mean for (state, mean) in state_means.items()}
+    return state_means
+
+
+def get_state_diff_from_mean(question, state):
+    state_mean = get_state_mean(question, state)
+    global_mean = get_global_mean(question)['global_mean']
+
+    state_mean[state] = global_mean - state_mean[state]
+    return state_mean
