@@ -3,7 +3,6 @@ from app import data_ingestor
 import json
 import os
 
-
 def job_wrapper(query, job_id, args):
     result = query(*args)
 
@@ -64,3 +63,23 @@ def get_state_diff_from_mean(question, state):
 
     state_mean[state] = global_mean - state_mean[state]
     return state_mean
+
+
+def get_mean_by_category(question):
+    data = data_ingestor.data_for_question(question)
+    states = set(map(lambda x: x.state, data))
+
+    state_data = {state: [entry for entry in data if entry.state == state] for state in states}
+
+    grouped_data = {
+        "('"+"', '".join((state, category, strat))+"')": [entry for entry in state_data[state] if entry.strat == strat]
+        for state in state_data.keys()
+        for category in set(map(lambda x: x.strat_category, state_data[state])) if category
+        for strat in set(map(
+            lambda x: x.strat, filter(lambda x: x.strat_category == category, state_data[state])
+        )) if strat
+    }
+    for key, items in grouped_data.items():
+        grouped_data[key] = reduce(lambda a, item: a + item.data_value, items, 0) / len(items)
+
+    return dict(sorted(grouped_data.items()))
