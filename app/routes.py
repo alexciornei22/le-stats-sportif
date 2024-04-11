@@ -130,8 +130,8 @@ def get_defined_routes():
 
 
 def submit_job_to_executor(job, *args):
-    future = webserver.tasks_runner.submit(job, args)
     job_id = webserver.job_counter
+    future = webserver.tasks_runner.submit(queries.job_wrapper, job, job_id, args)
     webserver.futures[job_id] = future
     webserver.job_counter += 1
     return job_id

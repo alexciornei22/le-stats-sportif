@@ -37,14 +37,14 @@ class DataIngestor:
             'Percent of adults who engage in muscle-strengthening activities on 2 or more days a week',
         ]
 
-    def get_data_for_question(self, question):
+    def data_for_question(self, question):
         return list(filter(lambda item: item.question == question, self.data))
 
-    def get_data_for_question_state(self, question, state):
+    def data_for_question_in_state(self, question, state):
         return list(filter(lambda item: item.question == question and item.state == state, self.data))
 
-    def get_averages_for_question(self, question):
-        data = self.get_data_for_question(question)
+    def states_averages_for_question(self, question):
+        data = self.data_for_question(question)
         states = self.get_states()
 
         values = {state: 0 for state in states}
