@@ -65,6 +65,10 @@ def get_state_diff_from_mean(question, state):
     return state_mean
 
 
+def format_data_for_mean_category(*args):
+    return "('"+"', '".join(args)+"')"
+
+
 def get_mean_by_category(question):
     data = data_ingestor.data_for_question(question)
     states = set(map(lambda x: x.state, data))
@@ -72,7 +76,8 @@ def get_mean_by_category(question):
     state_data = {state: [entry for entry in data if entry.state == state] for state in states}
 
     grouped_data = {
-        "('"+"', '".join((state, category, strat))+"')": [entry for entry in state_data[state] if entry.strat == strat]
+        format_data_for_mean_category(state, category, strat):
+            [entry for entry in state_data[state] if entry.strat == strat]
         for state in state_data.keys()
         for category in set(map(lambda x: x.strat_category, state_data[state])) if category
         for strat in set(map(
@@ -82,4 +87,21 @@ def get_mean_by_category(question):
     for key, items in grouped_data.items():
         grouped_data[key] = reduce(lambda a, item: a + item.data_value, items, 0) / len(items)
 
-    return dict(sorted(grouped_data.items()))
+    return grouped_data
+
+
+def get_state_mean_by_category(question, state):
+    data = data_ingestor.data_for_question_in_state(question, state)
+
+    grouped_data = {
+        format_data_for_mean_category(category, strat):
+            [entry for entry in data if entry.strat == strat]
+        for category in set(map(lambda x: x.strat_category, data)) if category
+        for strat in set(map(
+            lambda x: x.strat, filter(lambda x: x.strat_category == category, data)
+        )) if strat
+    }
+    for key, items in grouped_data.items():
+        grouped_data[key] = reduce(lambda a, item: a + item.data_value, items, 0) / len(items)
+
+    return {state: grouped_data}
