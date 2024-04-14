@@ -147,6 +147,11 @@ def index():
     return msg
 
 
+@webserver.route('/graceful_shutdown', methods=['GET'])
+def graceful_shutdown():
+    webserver.tasks_runner.shutdown(wait=False)
+    return jsonify('Shutting down')
+
 def get_defined_routes():
     routes = []
     for rule in webserver.url_map.iter_rules():
@@ -161,7 +166,10 @@ def submit_job_to_executor(job, *args):
     and returns the submitted job's ID
     """
     job_id = webserver.job_counter
-    future = webserver.tasks_runner.submit(queries.job_wrapper, job, job_id, args)
-    webserver.futures[job_id] = future
-    webserver.job_counter += 1
+    try:
+        future = webserver.tasks_runner.submit(queries.job_wrapper, job, job_id, args)
+        webserver.futures[job_id] = future
+        webserver.job_counter += 1
+    except RuntimeError as _:
+        job_id = "App has been shut down"
     return job_id
