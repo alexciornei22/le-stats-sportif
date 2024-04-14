@@ -1,14 +1,23 @@
-from functools import reduce
-from app import data_ingestor
+"""Methods for each dataset query used by the API"""
 import json
 import os
+from functools import reduce
+from app import data_ingestor
+
 
 def job_wrapper(query, job_id, args):
+    """
+    Calls a query method and saves its output as a json file in the results directory
+    :param query: method to call
+    :param job_id: job id for the current query
+    :param args: arguments to be passed to the query
+    :return: job result
+    """
     result = query(*args)
 
     if not os.path.exists('results'):
         os.makedirs('results')
-    with open(f'results/{job_id}', 'w') as result_file:
+    with open(f'results/{job_id}.json', 'w', encoding='utf-8') as result_file:
         json.dump(result, result_file)
 
     return result

@@ -1,3 +1,10 @@
+"""
+Import app data from a csv file
+
+Classes:
+    DataIngestor: takes a csv file, ingests it and offers methods to get the data
+"""
+
 import csv
 
 DATA_VALUE_KEY = 'Data_Value'
@@ -8,9 +15,10 @@ STRATIFICATION_CATEGORY_KEY = 'StratificationCategory1'
 
 
 class DataIngestor:
+    """Ingests data from csv file"""
     def __init__(self, csv_path: str):
         self.data = []
-        with open(csv_path) as data_file:
+        with open(csv_path, 'r', encoding='utf-8') as data_file:
             csv_reader = csv.DictReader(data_file)
             for row in csv_reader:
                 self.data.append(
@@ -38,12 +46,29 @@ class DataIngestor:
         ]
 
     def data_for_question(self, question):
+        """
+        Get all data entries for a given question
+        :param question: searched question
+        :return: list of DataEntry objects
+        """
         return list(filter(lambda item: item.question == question, self.data))
 
     def data_for_question_in_state(self, question, state):
+        """
+        Get all data entries for a given question in a state
+        :param question: searched question
+        :param state: state to search in
+        :return: list of DataEntry objects
+        """
         return list(filter(lambda item: item.question == question and item.state == state, self.data))
 
     def states_averages_for_question(self, question):
+        """
+        Get an average of all entries for a given question for each state in the DataIngestor
+        that has an entry for that question
+        :param question: searched question
+        :return: a dictionary with state names as keys and averages as values
+        """
         data = self.data_for_question(question)
         states = self.get_states()
 
@@ -59,10 +84,12 @@ class DataIngestor:
         return means
 
     def get_states(self):
+        """Get a list of all states in the DataIngestor"""
         return set(map(lambda item: item.state, self.data))
 
 
 class DataEntry:
+    """Holds information for a single entry from the dataset"""
     def __init__(self, data_value, question, state, strat_category, strat):
         self.data_value = float(data_value)
         self.question = question
