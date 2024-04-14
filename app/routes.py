@@ -2,12 +2,14 @@
 import json
 from flask import request, jsonify
 from app import queries, webserver
+from app.log import logger
 
 
 @webserver.route('/api/get_results/<int:job_id>', methods=['GET'])
 def get_response(job_id):
     """Get the response for a given job"""
-    future = webserver.futures[job_id]
+    future = webserver.futures.get(job_id)
+    logger.info(f'Requested response for job {job_id}')
 
     if future is None:
         return jsonify({'error': 'Invalid job_id'})
@@ -16,6 +18,8 @@ def get_response(job_id):
 
     with open(f'results/{job_id}.json', 'r', encoding='utf-8') as file:
         result = json.load(file)
+
+    logger.info(f"Returned job {job_id} result")
     return jsonify({'status': 'done', 'data': result})
 
 
@@ -23,6 +27,7 @@ def get_response(job_id):
 def get_jobs():
     """Get the statuses of all jobs submitted to the ThreadPoolExecutor"""
     jobs = [{job: 'done' if f.done() else 'running'} for job, f in webserver.futures.items()]
+    logger.info(f"Requested jobs status: {jobs}")
     return jsonify({'status': 'done', 'data': jobs})
 
 
@@ -30,6 +35,7 @@ def get_jobs():
 def num_jobs():
     """Get the number of jobs currently running"""
     count = len(list(filter(lambda f: not f.done(), webserver.futures.values())))
+    logger.info(f"Requested number of running jobs: {count}")
     return jsonify({'status': 'done', 'data': count})
 
 
@@ -37,9 +43,11 @@ def num_jobs():
 def states_mean_request():
     """Get the mean for each state for a given question"""
     data = request.get_json()
+    question = data['question']
 
-    job_id = submit_job_to_executor(queries.get_states_mean, data['question'])
+    job_id = submit_job_to_executor(queries.get_states_mean, question)
 
+    logger.info(f"States Mean Request, question: {question} job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -47,9 +55,12 @@ def states_mean_request():
 def state_mean_request():
     """Get the mean for a single state for a given question"""
     data = request.get_json()
+    question = data['question']
+    state = data['state']
 
-    job_id = submit_job_to_executor(queries.get_state_mean, data['question'], data['state'])
+    job_id = submit_job_to_executor(queries.get_state_mean, question, state)
 
+    logger.info(f"State Mean Request, question: {question}, state: {state}, job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -57,9 +68,11 @@ def state_mean_request():
 def best5_request():
     """Get the best 5 performing states for a question metric"""
     data = request.get_json()
+    question = data['question']
 
-    job_id = submit_job_to_executor(queries.get_best5, data['question'])
+    job_id = submit_job_to_executor(queries.get_best5, question)
 
+    logger.info(f"Best5 Request, question: {question}, job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -67,9 +80,11 @@ def best5_request():
 def worst5_request():
     """Get the worst 5 performing states for a question metric"""
     data = request.get_json()
+    question = data['question']
 
-    job_id = submit_job_to_executor(queries.get_worst5, data['question'])
+    job_id = submit_job_to_executor(queries.get_worst5, question)
 
+    logger.info(f"Worst5 Request, question: {question}, job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -77,9 +92,11 @@ def worst5_request():
 def global_mean_request():
     """Get the mean for all entries in all states regarding a question"""
     data = request.get_json()
+    question = data['question']
 
-    job_id = submit_job_to_executor(queries.get_global_mean, data['question'])
+    job_id = submit_job_to_executor(queries.get_global_mean, question)
 
+    logger.info(f"Global Mean Request, question: {question}, job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -87,9 +104,11 @@ def global_mean_request():
 def diff_from_mean_request():
     """Get each state mean's deviation from the global mean for a given question"""
     data = request.get_json()
+    question = data['question']
 
-    job_id = submit_job_to_executor(queries.get_diff_from_mean, data['question'])
+    job_id = submit_job_to_executor(queries.get_diff_from_mean, question)
 
+    logger.info(f"Diff from Mean Request, question: {question}, job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -102,6 +121,7 @@ def state_diff_from_mean_request():
 
     job_id = submit_job_to_executor(queries.get_state_diff_from_mean, question, state)
 
+    logger.info(f"Diff from Mean Request, question: {question}, state: {state} job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -113,6 +133,7 @@ def mean_by_category_request():
 
     job_id = submit_job_to_executor(queries.get_mean_by_category, question)
 
+    logger.info(f"Category Mean Request, question: {question}, job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -128,6 +149,7 @@ def state_mean_by_category_request():
 
     job_id = submit_job_to_executor(queries.get_state_mean_by_category, question, state)
 
+    logger.info(f"Category Mean Request, question: {question}, state: {state} job_id: {job_id}")
     return jsonify({"job_id": job_id})
 
 
@@ -150,7 +172,9 @@ def index():
 @webserver.route('/graceful_shutdown', methods=['GET'])
 def graceful_shutdown():
     webserver.tasks_runner.shutdown(wait=False)
+    logger.warning(f"Shutdown initiated")
     return jsonify('Shutting down')
+
 
 def get_defined_routes():
     routes = []
@@ -172,4 +196,5 @@ def submit_job_to_executor(job, *args):
         webserver.job_counter += 1
     except RuntimeError as _:
         job_id = "App has been shut down"
+        logger.warning(f"Tried to initiate job after shutdown")
     return job_id
